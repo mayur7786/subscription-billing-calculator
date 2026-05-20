@@ -1,0 +1,59 @@
+Subscription calculator
+
+For 1 customer
+Billing for each customer account
+Mlti Currency ? Open
+Subsidiaries ? 1 Subsidiaries
+
+Billing Cycle - Weekly/Biweekly/Monthly ? Monthtly and 1st day of month
+
+Do we need Rate limiter ? No
+
+
+You are a senior software developer and your task is to build a subscription calcuator. Following are the requirements :
+
+1. Billing cycle is monthly, generate bill 1st of every month
+2. Data model for calculator input is:
+    {
+        billing frequecy = "monthly"
+        currency = "USD"
+        line_items:
+            {
+                product: "prod1"
+                price_model: "flat"
+                unit_price: 500
+                quantity: 3
+                discount {type: "percentage", value: 10}
+            }
+            {
+                product: "prod2"
+                price_model: "per_unit"
+                unit_price: 0.03
+                quantity: 15000
+                discount: null
+            }
+            {
+                product: "prod3"
+                price_model: "tiered"
+                unit_price: 25.00
+                quantity: 12
+                discount: {type: "fixed", value: 50.00}
+            }
+    }
+3. Write a DTO for this data model that can be used.
+4. To calculate billing amount use this formula: amount = Unit price * quanity discount (if type is percentage then calculate the % of unit price * quantity using discont value and then deduct calculated discount from the amount, if type is fixed then deduct discount amount from the billing)
+5. Generate a UI for this calculator for manual testing
+6. Generate unit test for this 
+
+
+for (BigDecimal quantity : Quantity){
+    if(quantity < 10)
+    {
+        amount = unitprice * quantityPriceForQ1;
+    }else if (quantity > 10 && quanity < 40){
+        amount = unitprice * quantityPriceForQ2;
+    }else if (quantity > 50){
+        amount = unitprice * quantityPriceForQ3;
+    }
+
+}

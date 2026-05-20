@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Subscription Calculator</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f6f7f9;
+            --panel: #ffffff;
+            --ink: #18202a;
+            --muted: #5c6675;
+            --line: #d9dee7;
+            --accent: #0f766e;
+            --accent-strong: #115e59;
+            --danger: #b42318;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        main {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            gap: 24px;
+            align-items: end;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.15;
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        section {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin: 0 0 16px;
+            font-size: 18px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        label {
+            display: grid;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 40px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: var(--ink);
+            background: #fff;
+            font: inherit;
+        }
+
+        .line-item {
+            display: grid;
+            gap: 14px;
+            border-top: 1px solid var(--line);
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        button {
+            min-height: 40px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 8px 14px;
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button.secondary {
+            background: white;
+            color: var(--accent-strong);
+            border-color: var(--line);
+        }
+
+        button.danger {
+            background: white;
+            color: var(--danger);
+            border-color: var(--line);
+        }
+
+        .summary {
+            display: grid;
+            gap: 12px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 10px;
+            color: var(--muted);
+        }
+
+        .summary-row strong {
+            color: var(--ink);
+        }
+
+        .total {
+            font-size: 24px;
+        }
+
+        .items {
+            display: grid;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .item-result {
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .error {
+            color: var(--danger);
+            font-weight: 700;
+            min-height: 20px;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 820px) {
+            header,
+            .layout {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .meta {
+                text-align: left;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <div>
+            <h1>Subscription Calculator</h1>
+        </div>
+        <div class="meta">Monthly billing · Bills on the 1st · USD</div>
+    </header>
+
+    <div class="layout">
+        <section>
+            <h2>Calculator Input</h2>
+            <form id="calculatorForm">
+                <div class="grid">
+                    <label>
+                        Billing frequency
+                        <select id="billingFrequency">
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </label>
+                    <label>
+                        Currency
+                        <input id="currency" value="USD" maxlength="3">
+                    </label>
+                </div>
+
+                <div id="lineItems"></div>
+
+                <div class="actions">
+                    <button type="button" class="secondary" id="addLineItem">Add line item</button>
+                    <button type="submit">Calculate</button>
+                </div>
+                <div class="error" id="error"></div>
+            </form>
+        </section>
+
+        <section>
+            <h2>Billing Result</h2>
+            <div class="summary">
+                <div class="summary-row"><span>Bill date</span><strong id="billDate">-</strong></div>
+                <div class="summary-row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
+                <div class="summary-row"><span>Discount</span><strong id="discount">$0.00</strong></div>
+                <div class="summary-row total"><span>Total</span><strong id="total">$0.00</strong></div>
+            </div>
+            <div class="items" id="resultItems"></div>
+        </section>
+    </div>
+</main>
+
+<template id="lineItemTemplate">
+    <div class="line-item">
+        <div class="grid">
+            <label>
+                Product
+                <input data-field="product" value="prod1">
+            </label>
+            <label>
+                Price model
+                <select data-field="price_model">
+                    <option value="flat">Flat</option>
+                </select>
+            </label>
+            <label>
+                Unit price
+                <input type="number" min="0" step="0.01" data-field="unit_price" value="500">
+            </label>
+            <label>
+                Quantity
+                <input type="number" min="1" step="1" data-field="quantity" value="3">
+            </label>
+            <label>
+                Discount type
+                <select data-field="discount_type">
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed</option>
+                </select>
+            </label>
+            <label>
+                Discount value
+                <input type="number" min="0" step="0.01" data-field="discount_value" value="10">
+            </label>
+        </div>
+        <div>
+            <button type="button" class="danger" data-action="remove">Remove</button>
+        </div>
+    </div>
+</template>
+
+<script>
+    const lineItems = document.querySelector("#lineItems");
+    const template = document.querySelector("#lineItemTemplate");
+    const error = document.querySelector("#error");
+    const formatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+
+    function addLineItem() {
+        const node = template.content.firstElementChild.cloneNode(true);
+        node.querySelector("[data-action='remove']").addEventListener("click", () => {
+            if (lineItems.children.length > 1) {
+                node.remove();
+            }
+        });
+        lineItems.appendChild(node);
+    }
+
+    function readPayload() {
+        return {
+            billing_frequency: document.querySelector("#billingFrequency").value,
+            currency: document.querySelector("#currency").value.trim().toUpperCase(),
+            line_items: [...lineItems.children].map(item => ({
+                product: item.querySelector("[data-field='product']").value.trim(),
+                price_model: item.querySelector("[data-field='price_model']").value,
+                unit_price: Number(item.querySelector("[data-field='unit_price']").value),
+                quantity: Number(item.querySelector("[data-field='quantity']").value),
+                discount: {
+                    type: item.querySelector("[data-field='discount_type']").value,
+                    value: Number(item.querySelector("[data-field='discount_value']").value)
+                }
+            }))
+        };
+    }
+
+    function renderResult(result) {
+        document.querySelector("#billDate").textContent = result.bill_date;
+        document.querySelector("#subtotal").textContent = formatter.format(result.subtotal);
+        document.querySelector("#discount").textContent = formatter.format(result.total_discount);
+        document.querySelector("#total").textContent = formatter.format(result.total_amount);
+
+        document.querySelector("#resultItems").innerHTML = result.line_items.map(item => `
+            <div class="item-result">
+                <strong>${escapeHtml(item.product)}</strong>
+                <div>Subtotal: ${formatter.format(item.subtotal)}</div>
+                <div>Discount: ${formatter.format(item.discount_amount)}</div>
+                <div>Amount: ${formatter.format(item.amount)}</div>
+            </div>
+        `).join("");
+    }
+
+    function escapeHtml(value) {
+        return value.replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[character]));
+    }
+
+    document.querySelector("#addLineItem").addEventListener("click", addLineItem);
+    document.querySelector("#calculatorForm").addEventListener("submit", async event => {
+        event.preventDefault();
+        error.textContent = "";
+
+        const response = await fetch("/api/calculate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(readPayload())
+        });
+        const body = await response.json();
+
+        if (!response.ok) {
+            error.textContent = body.error || "Calculation failed";
+            return;
+        }
+        renderResult(body);
+    });
+
+    addLineItem();
+</script>
+</body>
+</html>
+
